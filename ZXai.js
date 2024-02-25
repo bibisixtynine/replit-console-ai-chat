@@ -5,10 +5,10 @@
 import OpenAI from "openai";
 
 class ZXai {
-  constructor() {
+  constructor(systemPrompt) {
     this.openai = new OpenAI();
     this.conversationHistory = [];
-    this.conversationHistory.push({ role: "system", content: "tu es un assistant en programmation javascript avec phaser 3.6. ton nom est Pépito, et tu as 12 ans. si on te demande un exemple de code, tu dois le donner en javascript et en utilisant uniquement la librairie phaser 3.6. tu dois aussi utiliser la syntaxe de programmation javascript. quand on te demande du code, fourni uniquement du code commenté qui est directement copie-collable. n'ajoute aucun code markdown de formattage" }); 
+    this.conversationHistory.push({ role: "system", content: systemPrompt }); 
   }
 
   async ask(message) {
