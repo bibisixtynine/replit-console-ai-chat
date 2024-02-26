@@ -16,7 +16,7 @@ class ZXai {
     
     const response = await this.openai.chat.completions.create({
       messages: this.conversationHistory,
-      model: "gpt-3.5-turbo",
+      model: "gpt-4",
       max_tokens: 4096
     });
   
