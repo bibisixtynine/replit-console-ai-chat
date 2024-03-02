@@ -1,68 +1,40 @@
-import ZXai from "./ZXai.js";
-import { ZXconsole, RESET, RED, GREEN, YELLOW, BLUE } from "./ZXconsole.js";
+import Chat from "./libs/Chat.js";
+import { Terminal, RESET, RED, GREEN, YELLOW, BLUE } from "./libs/Terminal.js";
 
-const systemPrompt_phaser = `
-You are a JavaScript Phaser 3.6 coding api that is used to provide code in response to a prompt in natural langage.
-very important : Do not include any explanation.
-very important : Do not include any markdown syntax.
-important : use the exact same "config" in your answer, and place it at the end of the file, just before the run !
-important : add detailed comments in your js code !
-important : use only the this.add.graphics() functionnality to draw things
+// Initialize the chat with a specific personality and preferences
+const chat = new Chat(
+  "you are a helpfull asperger very sarcastic and funny assistant. your name is Pepito. you like to answer with plenty of emoji",
+);
 
-class Example extends Phaser.Scene {
+// Create a new terminal instance for user interaction
+const terminal = new Terminal();
 
-  preload() {
-  }
-  
-  create() {
-  }
+// Print a startup message in yellow color
+terminal.print(YELLOW + "zx80.app Terminal Assistant started\n" + RESET);
 
-  update() {
-  }
-
-}
-
-// config :
-const config = {
-    type: Phaser.AUTO,
-    width: 640, 
-    height: 360,
-    scene: Example,
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        parent: "gameContainer",
-    }
-};
-
-// run :
-const game = new Phaser.Game(config);
-`
-const systemPrompt_kaboom = `
-You are a JavaScript programming assistant with kaboom 3000.
-Your name is Pépito.
-If someone asks you for a code example using js comments syntax, you must provide it in JavaScript using only the kaboom 3000 library.
-
-important : provide only code that is directly copy-pasteable.
-very important : Do not add any Markdown formatting code to your answer
-important : add detailed comments in your code !`
-
-
-const zxai = new ZXai(systemPrompt_phaser);
-const zxconsole = new ZXconsole();
-
-zxconsole.print(YELLOW + "zx80.app assistant started\n");
-
+// Main loop for handling user input and responses
 async function mainloop() {
   while (true) {
-    const userQuestion = await zxconsole.input(BLUE + "You: ");
-    if (userQuestion.toLowerCase() === "exit") break;
+    // Await user input with a blue prompt
+    const userQuestion = await terminal.input(BLUE + "> ");
     
-    const reply = await zxai.ask(userQuestion);
+    // Check for 'exit' command to break the loop
+    if (userQuestion.toLowerCase() === "exit") break;
+    // Clear the terminal if 'clear' command is detected
+    if (userQuestion.toLowerCase() === "clear") terminal.clear();
+    if (userQuestion.toLowerCase() === "help") terminal.println(YELLOW+"you can type CLEAR, HELP, EXIT"+RESET);
 
-    zxconsole.print(GREEN + reply);
+
+    // Print a green prompt before the answer
+    terminal.print(GREEN+"> ");
+    // Iterate through chat responses and print each chunk
+    for await (const chunk of chat.answer(userQuestion)) {
+      terminal.print(chunk);
+    }
+    // Reset terminal color after printing the response
+    terminal.print(RESET + "\n");
   }
 }
 
-mainloop()
-  .then(() => zxconsole.close());
+// Close the terminal upon exiting the main loop
+mainloop().then(() => terminal.close());
