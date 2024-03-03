@@ -4,23 +4,32 @@
 // v1.0.0
 // usage :
 async function testChat() {
-  console.log("Chat Test by requesting a citation and a french citation :")
+  console.log("Chat Test by requesting a citation and a french citation :");
   process.stdout.write(" - ");
-  const chat = new Chat("you are a helpfull assistant", process.env.OPENAI_API_KEY); // use your own api key
+  const chat = new Chat({
+    systemPrompt: "you are a helpfull assistant",
+    openaiApiKey: process.env.OPENAI_API_KEY, // use your own api key
+    model: "gpt-3.5-turbo",
+    maxToken: 4096,
+  });
 
   // Main loop for handling user input and stream responses
   async function main() {
-    for await (const chunk of chat.answer("hello ! tell me short random citation with the author !")) {
+    for await (const chunk of chat.answer(
+      "hello ! tell me short random citation with the author !",
+    )) {
       process.stdout.write(chunk);
     }
-  process.stdout.write("\n - ");
-    for await (const chunk of chat.answer("hello ! tell me short random citation with the author ! Use french langage")) {
+    process.stdout.write("\n - ");
+    for await (const chunk of chat.answer(
+      "hello ! tell me short random citation with the author ! Use french langage",
+    )) {
       process.stdout.write(chunk);
     }
   }
   // Close the terminal upon exiting the main loop
-  await main()
-  console.log("\n=> Test completed !\n")
+  await main();
+  console.log("\n=> Test completed !\n");
 }
 
 // call this function to test the chat,
@@ -28,18 +37,72 @@ async function testChat() {
 
 // await testChat()
 
-
 import OpenAI from "openai";
 
+const defaultSystemPrompt = "you are a helpfull assistant";
+const defaultOpenaiApiKey = process.env.OPENAI_API_KEY;
+const defaultOpenAIModel = "gpt-3.5-turbo";
+const defaulMaxTokens = 4096;
+
 class Chat {
+  systemPrompt;
+  openaiApiKey;
+  openaiModel;
+  maxTokens;
+
   //////////////////////////////////////////////////////////////////
   // Constructor initializes the OpenAI instance and conversation history
-  constructor(systemPrompt, openaiApiKey = process.env.OPENAI_API_KEY) {
-    this.openai = new OpenAI({ apiKey: openaiApiKey });
+  constructor(config = {}) {
+    this.reset(config);
+
+    this.openai = new OpenAI({ apiKey: this.openaiApiKey });
+  }
+
+  setConfig(config = {}) {
+    this.systemPrompt = config.systemPrompt || defaultSystemPrompt;
+    this.openaiApiKey = config.openaiApiKey || defaultOpenaiApiKey;
+    this.model = config.model || defaultOpenAIModel;
+    this.maxTokens = config.maxTokens || defaulMaxTokens;
+  }
+
+  setModel(model = defaultOpenAIModel) {
+    this.model = model;
+  }
+
+  setApIKey(apiKey = defaultOpenaiApiKey) {
+    this.openaiApiKey = apiKey;
+  }
+
+  setMaxTokens(maxTokens = defaulMaxTokens) {
+    this.maxTokens = maxTokens;
+  }
+
+  setSystemPrompt(systemPrompt = defaultSystemPrompt) {
+    this.systemPrompt = systemPrompt;
+    // Ajouter un nouveau message système à la conversationHistory
+    this.conversationHistory.push({
+      role: "system",
+      content: this.systemPrompt,
+    });
+  }
+
+  resetConversation() {
+    this.conversationHistory = [
+      {
+        role: "system",
+        content: this.systemPrompt,
+      },
+    ];
+  }
+
+  async reset(config = {}) {
+    await this.abort();
+    this.setConfig(config);
     this.conversationHistory = [];
-    // Add the initial system prompt to the conversation history
-    this.conversationHistory.push({ role: "system", content: systemPrompt });
-    this.stream = undefined;
+    this.conversationHistory.push({
+      role: "system",
+      content: this.systemPrompt,
+    });
   }
 
   //////////////////////////////////////////////////////////////////
@@ -52,10 +115,10 @@ class Chat {
     this.conversationHistory.push({ role: "assistant", content: "" });
     // Configuration for OpenAI API request
     const openai_config = {
-      model: "gpt-3.5-turbo",
+      model: this.model,
       messages: this.conversationHistory,
       stream: true,
-      max_tokens: 4096,
+      max_tokens: this.maxTokens,
     };
 
     try {
@@ -102,8 +165,8 @@ class Chat {
 
     const response = await this.openai.chat.completions.create({
       messages: this.conversationHistory,
-      model: "gpt-4",
-      max_tokens: 4096,
+      model: this.model,
+      max_tokens: this.maxTokens,
     });
 
     const aiMessage = response.choices[0].message.content.trim();
