@@ -2,13 +2,32 @@
 // 2 march 2024
 // ilboued
 // v1.0.0
-
 // usage :
-//    const userQuestion = await zxconsole.input(BLUE + "You: ");
-//
-//    for await (const chunk of zxai.answer(userQuestion)) {
-//      console.log(chunk);
-//    }
+async function testChat() {
+  console.log("Chat Test by requesting a citation and a french citation :")
+  process.stdout.write(" - ");
+  const chat = new Chat("you are a helpfull assistant", process.env.OPENAI_API_KEY); // use your own api key
+
+  // Main loop for handling user input and stream responses
+  async function main() {
+    for await (const chunk of chat.answer("hello ! tell me short random citation with the author !")) {
+      process.stdout.write(chunk);
+    }
+  process.stdout.write("\n - ");
+    for await (const chunk of chat.answer("hello ! tell me short random citation with the author ! Use french langage")) {
+      process.stdout.write(chunk);
+    }
+  }
+  // Close the terminal upon exiting the main loop
+  await main()
+  console.log("\n=> Test completed !\n")
+}
+
+// call this function to test the chat,
+// use await if you want to wait for the response :
+
+// await testChat()
+
 
 import OpenAI from "openai";
 
@@ -94,4 +113,4 @@ class Chat {
   }
 }
 
-export default Chat;
+export { Chat, testChat };

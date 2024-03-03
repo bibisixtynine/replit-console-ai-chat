@@ -23,24 +23,20 @@ const chat = new Chat("you are a helpfull assistant");
 // Create a new terminal instance for user interaction
 const terminal = new Terminal();
 
-// Main loop for handling user input and responses
+// Main loop for handling user input and stream responses
 async function mainloop() {
   while (true) {
-    // Await user input with a blue prompt
+
     const userQuestion = await terminal.input("user: ");
 
-    // Check for 'exit' command to break the loop
     if (userQuestion.toLowerCase() === "exit") break;
 
-    // Print a green prompt before the answer
     terminal.print("assistant: ");
 
-    // Iterate through chat responses and print each chunk
     for await (const chunk of chat.answer(userQuestion)) {
       terminal.print(chunk);
     }
 
-    // new line
     terminal.println("");
   }
 }
@@ -53,3 +49,4 @@ mainloop()
 ```
 
 Look at index.js for an richer example with colors :-)
+run the code with "node index.js" or "npm start" from the console
