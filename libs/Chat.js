@@ -20,11 +20,13 @@ class Chat {
     this.conversationHistory = [];
     // Add the initial system prompt to the conversation history
     this.conversationHistory.push({ role: "system", content: systemPrompt });
+    this.stream = undefined;
   }
 
   //////////////////////////////////////////////////////////////////
   // Asynchronous generator function to handle streaming responses
   async *answer(prompt) {
+    await this.abort();
     // Add user's prompt to the conversation history
     this.conversationHistory.push({ role: "user", content: prompt });
     // Placeholder for assistant's response
@@ -39,10 +41,10 @@ class Chat {
 
     try {
       // Create a stream for receiving OpenAI responses
-      const stream = await this.openai.chat.completions.create(openai_config);
+      this.stream = await this.openai.chat.completions.create(openai_config);
 
       // Iterate over each chunk of data in the stream
-      for await (const chunk of stream) {
+      for await (const chunk of this.stream) {
         const [choice] = chunk.choices;
         const { content } = choice.delta;
 
@@ -62,7 +64,20 @@ class Chat {
   }
 
   //////////////////////////////////////////////////////////////////
-  // No streaming mode
+  // stop streaming
+  async abort() {
+    if (
+      this.stream &&
+      this.stream.controller &&
+      typeof this.stream.controller.abort === "function"
+    ) {
+      this.stream.controller.abort();
+      this.stream = undefined;
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////
+  // answer without streaming
   async answerWithoutStreaming(message) {
     this.conversationHistory.push({ role: "user", content: message });
 

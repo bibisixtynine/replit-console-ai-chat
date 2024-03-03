@@ -1,5 +1,6 @@
 import readline from 'readline';
 
+// Terminal color codes
 const RESET = "\x1b[0m";
 const RED = "\x1b[31m";
 const GREEN = "\x1b[32m";
@@ -19,12 +20,14 @@ const BRIGHT_WHITE = "\x1b[97m";
 
 class Terminal {
   constructor() {
+    // Create a readline interface for input/output
     this.rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout
     });
   }
 
+  // Prompts the user with a question and returns a promise with the answer
   input(questionText) {
     return new Promise((resolve) => {
       this.rl.question(questionText, (answer) => {
@@ -33,18 +36,22 @@ class Terminal {
     });
   }
 
+  // Prints a message followed by a newline character
   println(message) {
     process.stdout.write(message + '\n');
   }
 
+  // Prints a message without a newline character
   print(message) {
     process.stdout.write(message)
   }
   
+  // Clears the terminal screen
   clear() {
     process.stdout.write('\x1Bc');
   }
 
+  // Closes the readline interface
   close() {
     this.rl.close();
   }
